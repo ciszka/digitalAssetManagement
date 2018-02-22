@@ -13,6 +13,7 @@
 #
 # Created:     15/02/2018
 # Copyright:   (c) pprzystupa 2018
+# Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
 #These are the libraries that you need to have installed for this to work
@@ -56,12 +57,12 @@ def cutThatOut (type):
     return len(type)
 
 #Writes out to a text file for the items that are in
-def writeTXTFile (fileName, tableBuilding):
+def writeFile (fileName, tableBuilding):
     #creates a new .txt for the table
-    text_file = open (fileName, "w")
-    text_file.write("OrigName,InstitCode,year,month,day,docType")
+    current_file = open (fileName, "w")
+    current_file.write("OrigName,InstitCode,year,month,day,docType")
     for i in range(0, len(tableBuilding)):
-       text_file.write(tableBuilding[i])
+       current_file.write(tableBuilding[i])
 
 
 # get current script dir
@@ -75,35 +76,37 @@ path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\New
 #create a document (.csv) for this information to be filled into
 fileName = "AIS.csv"
 
+#Institution Code This will be used for all items unless the code at the beginning of the item is completely different then it will reatain a unique code
+institutionCode = "AIS"
+
 #create a list of files from the location
 onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
 times = len(onlyInFiles) #Possibly count how many items are in the folder...
-tableGrowing = [] #Creates the Array for the table
+
+#Creates the Array to hold the line for each tiem
+tableGrowing = []
 numberOfFiles = 0
+skippedFiles = 0
 
 #for loop that cycles through the items in the list
 for i in range(0, times):
-    numberOfFiles = numberOfFiles+1
-    #Save the extension into the "last" column
-    institutionCode = "AIS" 	#Institution Code This will be used for all items unless the code at the beginning of the item is completely different then it will reatain a unique code
+    numberOfFiles = numberOfFiles+1 #counts the number of files to make sure all of them got looked at
     origName = onlyInFiles[i] 	#Colunms: Original Name
-    print origName
     #these are temporary to indicate if the data was retreived or not
     year = 9999 	#year
     month = 13	#month
     docType = "TXT" #Material type
     day = 32	#day
     metadata = [month,day,year]
-    if ".tif" in origName:
-        docType ="TIFF"        #Save the extension into the "last" column
+    if ".tif" in origName: #explores the document type which impacts where the date information comes from
+        docType ="TIFF"
     elif ".JPG" in origName: #primarily be photographs I have
-        docType = "JPEG"        #Save the extension into the "last" column
+        docType = "JPEG"
     elif ".pdf" in origName:
-        docType = "PDF"         #Save the extension into the "last" column
+        docType = "PDF"
     else:
-        docType = docType         #Save the extension into the "last" column
-    print docType
-    if "TXT" not in docType:
+        docType = docType
+    if "TXT" not in docType: #aka it is one of the acceptable types
         if institutionCode not in origName:
             if  "P" in origName:
                 metadata = getExifData(origName) #only works for photos unfortunately
@@ -117,16 +120,17 @@ for i in range(0, times):
                 institutionCode = origName[0:len(origName)-18] #the numerical things is 14 characters long and would start at the . for the extension only for items that are in the wrong place
                 metadata = getNameData(origName, institutionCode) #still follows the same pattern as the above stuff it's just a diffrent institutional code
         elif institutionCode in origName:
-            metadata = getNameData(origName, institutionCode)  #call the same method that is listed under the differe institution code
+            metadata = getNameData(origName, institutionCode)  #call the same method but will have a unique institution code
         month = metadata[0] #Set it to the month from metadata
         day = metadata[1] #Set it to the day from metadata
         year = metadata[2] #Set it to the year from metadata
-        newLine = '\n' + origName + ',' + institutionCode + ',' + year + "," + month + "," + day + "," + docType   #Save the whole name into the first column
+        newLine = '\n' + origName + ',' + institutionCode + ',' + year + "," + month + "," + day + "," + docType
         tableGrowing.append(newLine)
-    else:
-        print "Skipped that file"
-    print type(metadata)
+    else: #if it's not an acceptable file type we skip over it because it won't have the sort of information we want or it won't be the sort of data I want to keep track of
+        skippedFiles = skippedFiles + 1
+        print origName +", I skipped that file"
+        print "That makes %s skipped files" % skippedFiles
 
-writeTXTFile(fileName, tableGrowing)
+writeFile(fileName, tableGrowing)
 print 'done'
 print numberOfFiles
