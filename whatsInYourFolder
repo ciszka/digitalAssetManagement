@@ -1,0 +1,132 @@
+#-------------------------------------------------------------------------------
+# Name:        Digital Asset Management program
+# Purpose: Fill a table based on what is in a folder I want this to fill a table
+#          so I can know what the underlying images are that make up an
+#          institutions model also want to write something that will append new
+#          information but and not delete or added new ones so that as I add new
+#          material (either to the same file or read from different files I can
+#          apply this. This portion is currently set up to write to a .csv* but
+#          this will eventually be imported into Access (most likely just for
+#          convience of interface use) therefore it would be good to write some
+#          sequel for this as well which will go into another file
+# Author:      pprzystupa
+#
+# Created:     15/02/2018
+# Copyright:   (c) pprzystupa 2018
+#-------------------------------------------------------------------------------
+
+#These are the libraries that you need to have installed for this to work
+import os
+import exifread
+from os import listdir
+from os.path import isfile, join
+
+#Defined methods used in this program for appending information
+#Get EXIF metadata from photos taken
+def getExifData (imageName):
+    image = open(pathDirectory+"//" + imageName, 'rb') #opens the image file to be read #actually not 100% sure why this works but it does even though I didn't pass it the path directory...
+    tags = exifread.process_file(image) #process the image to get the exif tags
+    for tag in tags.keys(): #for all the tags that were processed
+        if tag in ('Image DateTime'): #I only want the image date/timetag
+            date = str(tags[tag]) #cast that list item into a string
+            year = date[0:4] #Get the year
+            month = date [5:7] #get the month
+            day = date[8:10] #get the day
+            return [month, day, year] #return a comprehensive date
+
+#Gets date collection data based on those things being in the name of the object
+def getNameData (imageName, institutionCode):
+    #separates out the different components for the metadata
+    cutNumber = 0 #sets the variable length for just figuring out what to cut out from the beginning of the name
+    if 'MYSCAN' in imageName: #for images scanned by the National Archives in College Park
+        cutNumber = cutThatOut("MYSCAN_")
+    elif 'IMG_' in imageName: #For images that were taken by my old phone
+        cutNumber = cutThatOut("IMG_")
+    elif 'archives@state.nm.us_' in imageName: #For images that were scanned at the NM State archives
+        cutNumber = cutThatOut("archives@state.nm.us_")
+    elif institutionCode in imageName: #these are for objects that have a different institution code but still have name based processing
+        cutNumber = cutThatOut(institutionCode)
+    year = imageName[cutNumber:cutNumber+4]
+    month = imageName[cutNumber+5:cutNumber+7]
+    day = imageName[cutNumber+8:cutNumber+10]
+    return [month, day, year]
+
+#Just returns the length of the type of document to be cut
+def cutThatOut (type):
+    return len(type)
+
+#Writes out to a text file for the items that are in
+def writeTXTFile (fileName, tableBuilding):
+    #creates a new .txt for the table
+    text_file = open (fileName, "w")
+    text_file.write("OrigName,InstitCode,year,month,day,docType")
+    for i in range(0, len(tableBuilding)):
+       text_file.write(tableBuilding[i])
+
+
+# get current script dir
+#give it a place to be reading from (a particular folder)
+# if data and the script are not in the same location,
+# comment out the next line and replace 'path' with directory of your data
+
+pathDirectory = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
+path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
+
+#create a document (.csv) for this information to be filled into
+fileName = "AIS.csv"
+
+#create a list of files from the location
+onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
+times = len(onlyInFiles) #Possibly count how many items are in the folder...
+tableGrowing = [] #Creates the Array for the table
+numberOfFiles = 0
+
+#for loop that cycles through the items in the list
+for i in range(0, times):
+    numberOfFiles = numberOfFiles+1
+    #Save the extension into the "last" column
+    institutionCode = "AIS" 	#Institution Code This will be used for all items unless the code at the beginning of the item is completely different then it will reatain a unique code
+    origName = onlyInFiles[i] 	#Colunms: Original Name
+    print origName
+    #these are temporary to indicate if the data was retreived or not
+    year = 9999 	#year
+    month = 13	#month
+    docType = "TXT" #Material type
+    day = 32	#day
+    metadata = [month,day,year]
+    if ".tif" in origName:
+        docType ="TIFF"        #Save the extension into the "last" column
+    elif ".JPG" in origName: #primarily be photographs I have
+        docType = "JPEG"        #Save the extension into the "last" column
+    elif ".pdf" in origName:
+        docType = "PDF"         #Save the extension into the "last" column
+    else:
+        docType = docType         #Save the extension into the "last" column
+    print docType
+    if "TXT" not in docType:
+        if institutionCode not in origName:
+            if  "P" in origName:
+                metadata = getExifData(origName) #only works for photos unfortunately
+            elif "MYSCAN" in origName:
+                metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+            elif "IMG" in origName:
+                metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+            elif "archives@state.nm.us" in origName: #if it's one of these types and in that folder it should be the same intitutional code
+                metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+            else:
+                institutionCode = origName[0:len(origName)-18] #the numerical things is 14 characters long and would start at the . for the extension only for items that are in the wrong place
+                metadata = getNameData(origName, institutionCode) #still follows the same pattern as the above stuff it's just a diffrent institutional code
+        elif institutionCode in origName:
+            metadata = getNameData(origName, institutionCode)  #call the same method that is listed under the differe institution code
+        month = metadata[0] #Set it to the month from metadata
+        day = metadata[1] #Set it to the day from metadata
+        year = metadata[2] #Set it to the year from metadata
+        newLine = '\n' + origName + ',' + institutionCode + ',' + year + "," + month + "," + day + "," + docType   #Save the whole name into the first column
+        tableGrowing.append(newLine)
+    else:
+        print "Skipped that file"
+    print type(metadata)
+
+writeTXTFile(fileName, tableGrowing)
+print 'done'
+print numberOfFiles
