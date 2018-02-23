@@ -15,7 +15,7 @@ import exifread
 import takeStockOfFiles # I can use this to limit some processing stuff but not sure how yet
 from os import listdir
 from os.path import isfile, join
-
+from takeStockOfFiles import theDataForThisOneLine
 #give it a place to be reading from (a particular folder)
 # if data and the script are not in the same location,
 # comment out the next line and replace 'path' with directory of your data
@@ -25,6 +25,9 @@ path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\New
 
 #create a document (.csv) for this information to be filled into
 fileName = "AIS.csv"
+
+#Institution Code This will be used for all items unless the code at the beginning of the item is completely different then it will reatain a unique code
+institutionCode = "AIS"
 
 #Writes out to a text file for the items that are in
 def editFile (fileName, tableBuilding):
@@ -60,9 +63,13 @@ missingFromFolder = []
 for i in range(0, times):
     inTheFolder.append(onlyInFiles[i]) #I also want to make a list of everything that's in the folder
     if onlyInFiles[i] in existingList:
-        print = "Already there"
+        print "Already there"
     else: #If not in file: follow the takestockProcedure
-        newLine = #Run the get info stuff
+        newDoc = onlyInFiles[i]
+        lineInfo = theDataForThisOneLine(newDoc,institutionCode)
+        metadata = lineInfo[0]
+        docType = lineInfo[1]
+        newLine = '\n' + newDoc + ',' + institutionCode + ',' + metadata[2] + "," + metadata[0] + "," + metadata[1] + "," + docType
         newItemsList.append(newLine)
 
 editFile(newItemsList)
@@ -74,7 +81,4 @@ for i in range(0, len(existingList)):
     if existingList[i] in inTheFolder:
         pass
     else:
-        missingFromFolder.append(existingList + " is missing from the folder")
-
-#If not in folder: print out the file name that is missing
-print missingFromFolder
+        print missingFromFolder.append(existingList + " is missing from the folder")#If not in folder: print out the file name that is missing
