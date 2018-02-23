@@ -64,6 +64,41 @@ def writeFile (fileName, tableBuilding):
     for i in range(0, len(tableBuilding)):
        current_file.write(tableBuilding[i])
 
+def areYouMyType (fileName):
+    if ".tif" in origName: #explores the document type which impacts where the date information comes from
+        docType ="TIFF"
+    elif ".JPG" in origName: #primarily be photographs I have
+        docType = "JPEG"
+    elif ".pdf" in origName:
+        docType = "PDF"
+    else:
+        docType = docType
+    return [docType]
+
+def whatToDoWithThisDoc (fileName, institutionCode):
+    if  "P" in origName:
+        metadata = getExifData(origName) #only works for photos unfortunately
+    elif "MYSCAN" in origName:
+        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+    elif "IMG" in origName:
+        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+    elif "archives@state.nm.us" in origName: #if it's one of these types and in that folder it should be the same intitutional code
+        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+    else:
+        institutionCode = origName[0:len(origName)-18] #the numerical things is 14 characters long and would start at the . for the extension only for items that are in the wrong place
+        metadata = getNameData(origName, institutionCode) #still follows the same pattern as the above stuff it's just a diffrent institutional code
+    return metadata, institutionCode
+
+def theDataForThisOneLine (fileName,institutionCode):
+    docType = areYouMyType(fileName)
+    if "TXT" not in docType: #aka it is one of the acceptable types
+      if institutionCode not in fileName:
+            lineInfo = whatToDoWithThisDoc(fileName, institutionCode)
+            metadata = lineInfo[0]
+            institutionCode = lineInfo[1]
+      elif institutionCode in origName:
+            metadata = getNameData(fileName, institutionCode)  #call the same method but will have a unique institution code
+    return [metadata, institutionCode, docType]
 
 # get current script dir
 #give it a place to be reading from (a particular folder)
@@ -98,34 +133,19 @@ for i in range(0, times):
     docType = "TXT" #Material type
     day = 32	#day
     metadata = [month,day,year]
-    if ".tif" in origName: #explores the document type which impacts where the date information comes from
-        docType ="TIFF"
-    elif ".JPG" in origName: #primarily be photographs I have
-        docType = "JPEG"
-    elif ".pdf" in origName:
-        docType = "PDF"
-    else:
-        docType = docType
+    docType = areYouMyType(origName)
     if "TXT" not in docType: #aka it is one of the acceptable types
-        if institutionCode not in origName:
-            if  "P" in origName:
-                metadata = getExifData(origName) #only works for photos unfortunately
-            elif "MYSCAN" in origName:
-                metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-            elif "IMG" in origName:
-                metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-            elif "archives@state.nm.us" in origName: #if it's one of these types and in that folder it should be the same intitutional code
-                metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-            else:
-                institutionCode = origName[0:len(origName)-18] #the numerical things is 14 characters long and would start at the . for the extension only for items that are in the wrong place
-                metadata = getNameData(origName, institutionCode) #still follows the same pattern as the above stuff it's just a diffrent institutional code
-        elif institutionCode in origName:
+      if institutionCode not in origName:
+            lineInfo = whatToDoWithThisDoc(origName, institutionCode)
+      elif institutionCode in origName:
             metadata = getNameData(origName, institutionCode)  #call the same method but will have a unique institution code
-        month = metadata[0] #Set it to the month from metadata
-        day = metadata[1] #Set it to the day from metadata
-        year = metadata[2] #Set it to the year from metadata
-        newLine = '\n' + origName + ',' + institutionCode + ',' + year + "," + month + "," + day + "," + docType
-        tableGrowing.append(newLine)
+      metadata = lineInfo[0]
+      institutionCode = lineInfo[1]
+      month = metadata[0] #Set it to the month from metadata
+      day = metadata[1] #Set it to the day from metadata
+      year = metadata[2] #Set it to the year from metadata
+      newLine = '\n' + origName + ',' + institutionCode + ',' + year + "," + month + "," + day + "," + docType
+      tableGrowing.append(newLine)
     else: #if it's not an acceptable file type we skip over it because it won't have the sort of information we want or it won't be the sort of data I want to keep track of
         skippedFiles = skippedFiles + 1
         print origName +", I skipped that file"
