@@ -1,0 +1,80 @@
+#-------------------------------------------------------------------------------
+# Name:        Digital Asset Management program
+# Purpose: Append a table based on what is in a folder so I can know what the
+#          underlying images are that make up an
+#          institutions model to read from a different files
+# Author:      pprzystupa
+#
+# Created:     15/02/2018
+# Copyright:   (c) pprzystupa 2018
+# Licence:     <your licence>
+#-------------------------------------------------------------------------------
+
+import os
+import exifread
+import takeStockOfFiles # I can use this to limit some processing stuff but not sure how yet
+from os import listdir
+from os.path import isfile, join
+
+#give it a place to be reading from (a particular folder)
+# if data and the script are not in the same location,
+# comment out the next line and replace 'path' with directory of your data
+
+pathDirectory = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
+path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
+
+#create a document (.csv) for this information to be filled into
+fileName = "AIS.csv"
+
+#Writes out to a text file for the items that are in
+def editFile (fileName, tableBuilding):
+    #creates a new .txt for the table
+    current_file = open (fileName, "a+")
+    for i in range(0, len(tableBuilding)):
+       current_file.write(tableBuilding[i])
+
+#I want to read what's in the file list as what should be in the folder to make a comparisons list
+def whatsInThisFile (fileName):
+    current_file = open (fileName) #open the file
+    line = current_file.readline() #read all lines
+    line = current_file.readline() #reads the next line
+    whatsInFile = [] #creats a list to hold all the names of the files that should be in this list
+    counter = 0 #a counter
+    #skip the first line of the file
+    while line:
+        currentLine = line
+        whatsInFile[counter] = currentLine.split(",")[0]
+        line = current_file.readline()
+        counter = counter + 1
+    return whatsInFile
+
+#create a list of files from the location
+onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
+times = len(onlyInFiles) #Possibly count how many items are in the folder...
+
+inTheFolder = []
+newItemsList = []
+missingFromFolder = []
+
+#for loop that cycles through the items in the list
+for i in range(0, times):
+    inTheFolder.append(onlyInFiles[i]) #I also want to make a list of everything that's in the folder
+    if onlyInFiles[i] in existingList:
+        print = "Already there"
+    else: #If not in file: follow the takestockProcedure
+        newLine = #Run the get info stuff
+        newItemsList.append(newLine)
+
+editFile(newItemsList)
+
+existingList = whatsInThisFile(fileName)
+
+#I want to know if what is in the existing list in still in the folder
+for i in range(0, len(existingList)):
+    if existingList[i] in inTheFolder:
+        pass
+    else:
+        missingFromFolder.append(existingList + " is missing from the folder")
+
+#If not in folder: print out the file name that is missing
+print missingFromFolder
