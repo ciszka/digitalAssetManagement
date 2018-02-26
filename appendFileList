@@ -12,14 +12,13 @@
 
 import os
 import exifread
-import takeStockOfFiles # I can use this to limit some processing stuff but not sure how yet
 from os import listdir
 from os.path import isfile, join
-from takeStockOfFiles import theDataForThisOneLine
+from DAM_helpers import *
+
 #give it a place to be reading from (a particular folder)
 # if data and the script are not in the same location,
 # comment out the next line and replace 'path' with directory of your data
-
 pathDirectory = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
 path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
 
@@ -29,6 +28,10 @@ fileName = "AIS.csv"
 #Institution Code This will be used for all items unless the code at the beginning of the item is completely different then it will reatain a unique code
 institutionCode = "AIS"
 
+#create a list of files from the location
+onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
+times = len(onlyInFiles) #Possibly count how many items are in the folder...
+
 #Writes out to a text file for the items that are in
 def editFile (fileName, tableBuilding):
     #creates a new .txt for the table
@@ -36,7 +39,7 @@ def editFile (fileName, tableBuilding):
     for i in range(0, len(tableBuilding)):
        current_file.write(tableBuilding[i])
 
-#I want to read what's in the file list as what should be in the folder to make a comparisons list
+#I want to read what's in the file list as what should be in the folderto make a comparisons list
 def whatsInThisFile (fileName):
     current_file = open (fileName) #open the file
     line = current_file.readline() #read all lines
@@ -46,39 +49,36 @@ def whatsInThisFile (fileName):
     #skip the first line of the file
     while line:
         currentLine = line
-        whatsInFile[counter] = currentLine.split(",")[0]
+        onlyFirstColumn = currentLine.split(",") [0]
+        whatsInFile.append(onlyFirstColumn)
         line = current_file.readline()
         counter = counter + 1
     return whatsInFile
 
-#create a list of files from the location
-onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
-times = len(onlyInFiles) #Possibly count how many items are in the folder...
-
-inTheFolder = []
-newItemsList = []
-missingFromFolder = []
+inTheFolder = [] #a growing list of what is in the folder
+newItemsList = [] #new items that were not previously in the csv
+existingList = whatsInThisFile(fileName)
 
 #for loop that cycles through the items in the list
 for i in range(0, times):
     inTheFolder.append(onlyInFiles[i]) #I also want to make a list of everything that's in the folder
+    docType = "TXT"
     if onlyInFiles[i] in existingList:
-        print "Already there"
+        pass
     else: #If not in file: follow the takestockProcedure
+        print "I'm adding a new line"
         newDoc = onlyInFiles[i]
-        lineInfo = theDataForThisOneLine(newDoc,institutionCode)
+        lineInfo = theDataForThisOneLine(newDoc,institutionCode, docType)
         metadata = lineInfo[0]
         docType = lineInfo[1]
         newLine = '\n' + newDoc + ',' + institutionCode + ',' + metadata[2] + "," + metadata[0] + "," + metadata[1] + "," + docType
         newItemsList.append(newLine)
 
-editFile(newItemsList)
-
-existingList = whatsInThisFile(fileName)
+editFile(fileName,newItemsList)
 
 #I want to know if what is in the existing list in still in the folder
 for i in range(0, len(existingList)):
     if existingList[i] in inTheFolder:
         pass
     else:
-        print missingFromFolder.append(existingList + " is missing from the folder")#If not in folder: print out the file name that is missing
+        print existingList[i] + " is missing from the folder"#If not in folder: print out the file name that is missing
