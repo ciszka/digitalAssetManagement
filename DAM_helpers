@@ -1,0 +1,96 @@
+#-------------------------------------------------------------------------------
+# Name:     DAM_helpers
+# Purpose:  This is the compliation of the organized helper methods that are
+#           read in takeStockOfFiles.py
+# Author:      pprzystupa
+#
+# Created:     26/02/2018
+# Copyright:   (c) pprzystupa 2018
+# Licence:     <your licence>
+#-------------------------------------------------------------------------------
+
+#These are the libraries that you need to have installed for this to work
+import os
+import exifread
+from os import listdir
+from os.path import isfile, join
+
+#Defined methods used in this program for appending information
+#Get EXIF metadata from photos taken
+def getExifData (imageName, pathDirectory):
+    image = open(pathDirectory+"//" + imageName, 'rb') #opens the image file to be read #actually not 100% sure why this works but it does even though I didn't pass it the path directory...
+    tags = exifread.process_file(image) #process the image to get the exif tags
+    for tag in tags.keys(): #for all the tags that were processed
+        if tag in ('Image DateTime'): #I only want the image date/timetag
+            date = str(tags[tag]) #cast that list item into a string
+            year = date[0:4] #Get the year
+            month = date [5:7] #get the month
+            day = date[8:10] #get the day
+            return [month, day, year] #return a comprehensive date
+
+#Gets date collection data based on those things being in the name of the object
+def getNameData (imageName, institutionCode):
+    #separates out the different components for the metadata
+    cutNumber = 0 #sets the variable length for just figuring out what to cut out from the beginning of the name
+    if 'MYSCAN' in imageName: #for images scanned by the National Archives in College Park
+        cutNumber = cutThatOut("MYSCAN_")
+    elif 'IMG_' in imageName: #For images that were taken by my old phone
+        cutNumber = cutThatOut("IMG_")
+    elif 'archives@state.nm.us_' in imageName: #For images that were scanned at the NM State archives
+        cutNumber = cutThatOut("archives@state.nm.us_")
+    elif institutionCode in imageName: #these are for objects that have a different institution code but still have name based processing
+        cutNumber = cutThatOut(institutionCode)
+    year = imageName[cutNumber:cutNumber+4]
+    month = imageName[cutNumber+5:cutNumber+7]
+    day = imageName[cutNumber+8:cutNumber+10]
+    return [month, day, year]
+
+#Just returns the length of the type of document to be cut
+def cutThatOut (type):
+    return len(type)
+
+#Writes out to a text file for the items that are in
+def writeFile (fileName, tableBuilding):
+    #creates a new .txt for the table
+    current_file = open (fileName, "w")
+    current_file.write("OrigName,InstitCode,year,month,day,docType")
+    for i in range(0, len(tableBuilding)):
+       current_file.write(tableBuilding[i])
+
+def areYouMyType (fileName, docType):
+    if ".tif" in fileName: #explores the document type which impacts where the date information comes from
+        docType ="TIFF"
+    elif ".JPG" in fileName: #primarily be photographs I have
+        docType = "JPEG"
+    elif ".pdf" in fileName:
+        docType = "PDF"
+    else:
+        docType = docType
+    return docType
+
+def whatToDoWithThisDoc (origName, institutionCode, pathDirectory):
+    if  "P" in origName:
+        metadata = getExifData(origName, pathDirectory) #only works for photos unfortunately
+    elif "MYSCAN" in origName:
+        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+    elif "IMG" in origName:
+        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+    elif "archives@state.nm.us" in origName: #if it's one of these types and in that folder it should be the same intitutional code
+        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
+    else:
+        institutionCode = origName[0:len(origName)-18] #the numerical things is 14 characters long and would start at the . for the extension only for items that are in the wrong place
+        metadata = getNameData(origName, institutionCode) #still follows the same pattern as the above stuff it's just a diffrent institutional code
+    return metadata, institutionCode
+
+def theDataForThisOneLine (fileName,institutionCode, docType):
+    docType = areYouMyType(fileName, docType)
+    metadata = "XXXXX"
+    if "TXT" not in docType: #aka it is one of the acceptable types
+      if institutionCode not in fileName:
+            lineInfo = whatToDoWithThisDoc(fileName, institutionCode)
+            metadata = lineInfo[0]
+            institutionCode = lineInfo[1]
+      elif institutionCode in fileName:
+            metadata = getNameData(fileName, institutionCode)  #call the same method but will have a unique institution code
+    return [metadata, institutionCode, docType]
+
