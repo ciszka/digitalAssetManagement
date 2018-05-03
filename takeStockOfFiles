@@ -18,8 +18,7 @@
 
 #These are the libraries that you need to have installed for this to work
 import os
-import 
-import DAM_helpers
+import exifread
 from DAM_helpers import *
 from os import listdir
 from os.path import isfile, join
@@ -28,15 +27,15 @@ from os.path import isfile, join
 #give it a place to be reading from (a particular folder)
 # if data and the script are not in the same location,
 # comment out the next line and replace 'path' with directory of your data
-
-pathDirectory = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
-path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
-
-#create a document (.csv) for this information to be filled into
-fileName = "AIS.csv"
+#C:\Users\pprzystupa\Documents\Spring_2018\DissertationResearch\California\Hoopa
+pathDirectory = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\Oklahoma\\Riverside"
+path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\Oklahoma\\Riverside"
 
 #Institution Code This will be used for all items unless the code at the beginning of the item is completely different then it will reatain a unique code
-institutionCode = "AIS"
+institutionCode = "RIS"
+
+#create a document (.csv) for this information to be filled into
+fileName = institutionCode + ".csv"
 
 #create a list of files from the location
 onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
@@ -54,17 +53,15 @@ for i in range(0, times):
     #these are temporary to indicate if the data was retreived or not
     year = "9999" 	#year
     month = "13"	#month
-    docType = "TXT" #Material type
     day = "32"	#day
+    docType = "TXT" #Material type
     metadata = [month,day,year]
     docType = areYouMyType(origName, docType)
     if "TXT" not in docType: #aka it is one of the acceptable types
-      if institutionCode not in origName:
-            lineInfo = whatToDoWithThisDoc(origName, institutionCode, pathDirectory)
-            metadata = lineInfo[0]
-            institutionCode = str(lineInfo[1])
-      elif institutionCode in origName:
-            metadata = getNameData(origName, institutionCode)  #call the same method but will have a unique institution code
+      if docType == 'JPEG':
+            metadata = getExifMetadata (origName, pathDirectory)
+      else:
+            metadata = getNameData(origName)  #call the same method but will have a unique institution code
       month = str(metadata[0]) #Set it to the month from metadata
       day = str(metadata[1]) #Set it to the day from metadata
       year = str(metadata[2]) #Set it to the year from metadata
@@ -75,6 +72,6 @@ for i in range(0, times):
         print origName +", I skipped that file"
         print "That makes %s skipped files" % skippedFiles
 
-writeFile(fileName, tableGrowing)
+writeFile(fileName, tableGrowing, pathDirectory)
 print 'done'
 print numberOfFiles
