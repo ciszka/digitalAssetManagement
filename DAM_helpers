@@ -1,10 +1,17 @@
 #-------------------------------------------------------------------------------
-# Name:     DAM_helpers
-# Purpose:  This is the compliation of the organized helper methods that are
-#           read in takeStockOfFiles.py
+# Name:        Digital Asset Management program
+# Purpose: Fill a table based on what is in a folder I want this to fill a table
+#          so I can know what the underlying images are that make up an
+#          institutions model also want to write something that will append new
+#          information but and not delete or added new ones so that as I add new
+#          material (either to the same file or read from different files I can
+#          apply this. This portion is currently set up to write to a .csv* but
+#          this will eventually be imported into Access (most likely just for
+#          convience of interface use) therefore it would be good to write some
+#          sequel for this as well which will go into another file
 # Author:      pprzystupa
 #
-# Created:     26/02/2018
+# Created:     15/02/2018
 # Copyright:   (c) pprzystupa 2018
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
@@ -12,85 +19,59 @@
 #These are the libraries that you need to have installed for this to work
 import os
 import exifread
+from DAM_helpers import *
 from os import listdir
 from os.path import isfile, join
 
-#Defined methods used in this program for appending information
-#Get EXIF metadata from photos taken
-def getExifData (imageName, pathDirectory):
-    image = open(pathDirectory+"//" + imageName, 'rb') #opens the image file to be read #actually not 100% sure why this works but it does even though I didn't pass it the path directory...
-    tags = exifread.process_file(image) #process the image to get the exif tags
-    for tag in tags.keys(): #for all the tags that were processed
-        if tag in ('Image DateTime'): #I only want the image date/timetag
-            date = str(tags[tag]) #cast that list item into a string
-            year = date[0:4] #Get the year
-            month = date [5:7] #get the month
-            day = date[8:10] #get the day
-            return [month, day, year] #return a comprehensive date
+# get current script dir
+#give it a place to be reading from (a particular folder)
+# if data and the script are not in the same location,
+# comment out the next line and replace 'path' with directory of your data
+#C:\Users\pprzystupa\Documents\Spring_2018\DissertationResearch\California\Hoopa
+pathDirectory = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\Oklahoma\\Riverside"
+path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\Oklahoma\\Riverside"
 
-#Gets date collection data based on those things being in the name of the object
-def getNameData (imageName, institutionCode):
-    #separates out the different components for the metadata
-    cutNumber = 0 #sets the variable length for just figuring out what to cut out from the beginning of the name
-    if 'MYSCAN' in imageName: #for images scanned by the National Archives in College Park
-        cutNumber = cutThatOut("MYSCAN_")
-    elif 'IMG_' in imageName: #For images that were taken by my old phone
-        cutNumber = cutThatOut("IMG_")
-    elif 'archives@state.nm.us_' in imageName: #For images that were scanned at the NM State archives
-        cutNumber = cutThatOut("archives@state.nm.us_")
-    elif institutionCode in imageName: #these are for objects that have a different institution code but still have name based processing
-        cutNumber = cutThatOut(institutionCode)
-    year = imageName[cutNumber:cutNumber+4]
-    month = imageName[cutNumber+5:cutNumber+7]
-    day = imageName[cutNumber+8:cutNumber+10]
-    return [month, day, year]
+#Institution Code This will be used for all items unless the code at the beginning of the item is completely different then it will reatain a unique code
+institutionCode = "RIS"
 
-#Just returns the length of the type of document to be cut
-def cutThatOut (type):
-    return len(type)
+#create a document (.csv) for this information to be filled into
+fileName = institutionCode + ".csv"
 
-#Writes out to a text file for the items that are in
-def writeFile (fileName, tableBuilding):
-    #creates a new .txt for the table
-    current_file = open (fileName, "w")
-    current_file.write("OrigName,InstitCode,year,month,day,docType")
-    for i in range(0, len(tableBuilding)):
-       current_file.write(tableBuilding[i])
+#create a list of files from the location
+onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
+times = len(onlyInFiles) #Possibly count how many items are in the folder...
 
-def areYouMyType (fileName, docType):
-    if ".tif" in fileName: #explores the document type which impacts where the date information comes from
-        docType ="TIFF"
-    elif ".JPG" in fileName: #primarily be photographs I have
-        docType = "JPEG"
-    elif ".pdf" in fileName:
-        docType = "PDF"
-    else:
-        docType = docType
-    return docType
+#Creates the Array to hold the line for each tiem
+tableGrowing = []
+numberOfFiles = 0
+skippedFiles = 0
 
-def whatToDoWithThisDoc (origName, institutionCode, pathDirectory):
-    if  "P" in origName:
-        metadata = getExifData(origName, pathDirectory) #only works for photos unfortunately
-    elif "MYSCAN" in origName:
-        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-    elif "IMG" in origName:
-        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-    elif "archives@state.nm.us" in origName: #if it's one of these types and in that folder it should be the same intitutional code
-        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-    else:
-        institutionCode = origName[0:len(origName)-18] #the numerical things is 14 characters long and would start at the . for the extension only for items that are in the wrong place
-        metadata = getNameData(origName, institutionCode) #still follows the same pattern as the above stuff it's just a diffrent institutional code
-    return metadata, institutionCode
-
-def theDataForThisOneLine (fileName,institutionCode, docType):
-    docType = areYouMyType(fileName, docType)
-    metadata = "XXXXX"
+#for loop that cycles through the items in the list
+for i in range(0, times):
+    numberOfFiles = numberOfFiles+1 #counts the number of files to make sure all of them got looked at
+    origName = str(onlyInFiles[i]) 	#Colunms: Original Name
+    #these are temporary to indicate if the data was retreived or not
+    year = "9999" 	#year
+    month = "13"	#month
+    day = "32"	#day
+    docType = "TXT" #Material type
+    metadata = [month,day,year]
+    docType = areYouMyType(origName, docType)
     if "TXT" not in docType: #aka it is one of the acceptable types
-      if institutionCode not in fileName:
-            lineInfo = whatToDoWithThisDoc(fileName, institutionCode)
-            metadata = lineInfo[0]
-            institutionCode = lineInfo[1]
-      elif institutionCode in fileName:
-            metadata = getNameData(fileName, institutionCode)  #call the same method but will have a unique institution code
-    return [metadata, institutionCode, docType]
+      if docType == 'JPEG':
+            metadata = getExifMetadata (origName, pathDirectory)
+      else:
+            metadata = getNameData(origName)  #call the same method but will have a unique institution code
+      month = str(metadata[0]) #Set it to the month from metadata
+      day = str(metadata[1]) #Set it to the day from metadata
+      year = str(metadata[2]) #Set it to the year from metadata
+      newLine = '\n' + origName + ',' + institutionCode + ',' + year + "," + month + "," + day + "," + docType
+      tableGrowing.append(newLine)
+    else: #if it's not an acceptable file type we skip over it because it won't have the sort of information we want or it won't be the sort of data I want to keep track of
+        skippedFiles = skippedFiles + 1
+        print origName +", I skipped that file"
+        print "That makes %s skipped files" % skippedFiles
 
+writeFile(fileName, tableGrowing, pathDirectory)
+print 'done'
+print numberOfFiles
