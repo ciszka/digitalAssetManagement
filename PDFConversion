@@ -2,8 +2,10 @@ convertAllPDFs = function(fileLocation){
   #Required libraries
   require(utils)
   require(pdftools)
-  
+
   #set a workspace
+  setwd(fileLocation)
+
   #Deals with where to find the files and which files to include
   #Get a file path with what you want to convert
   filesToAnalyze = list.files(fileLocation)
