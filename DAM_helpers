@@ -6,7 +6,7 @@
 #
 # Created:     26/02/2018
 # Copyright:   (c) pprzystupa 2018
-# Licence:     THIS IS IN PYTHON
+# Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
 #These are the libraries that you need to have installed for this to work
@@ -41,6 +41,7 @@ def writeFile (fileName, tableBuilding, pathdirectory):
        current_file.write(tableBuilding[i])
 
 def areYouMyType (fileName, docType):
+    #if "HABSCAL" not in fileName:
     if ".tif" in fileName: #explores the document type which impacts where the date information comes from
         docType ="TIFF"
     elif ".TIF" in fileName:
@@ -65,9 +66,11 @@ def theDataForThisOneLine (fileName,institutionCode, docType):
             metadata = getNameData(fileName, institutionCode)  #call the same method but will have a unique institution code
     return [metadata, institutionCode, docType]
 
-#alternative for getname data #I also noeed a (hey just like...fucking skip this line)  #Create a list of all the possible starting things #run it through a for loop
+#alternative for getname data I also need a (hey just like...fucking skip this line)
+#Create a list of all the possible starting things
+#run it through a for loop
 def getNameData (imageName):     #cutNumber= 0
-    prefixList = ["UPA", "NPA", "DOIOOIA", "AIS", "ABQ", "AFIS", "SFIS", "MYSCAN_", "IMG_", "TAOS", "archives@state.nm.us_", "A2-3050-Sharp363N-1@nara.gov_", "1902_", "chaity_", "slide1_1908_", "slide1_1930_", "slide3_1908_", "slide4_1930_", "slide10_1902_", "slide11_1908_", "slide21_1930_", "56_AAASF_"]
+    prefixList = ["sao", "UPA", "NPA", "DOIOOIA", "AIS", "ABQ", "AFIS", "SFIS", "MYSCAN_", "IMG_", "TAOS", "archives@state.nm.us_", "A2-3050-Sharp363N-1@nara.gov_", "1902_", "chaity_", "slide1_1908_", "slide1_1930_", "slide3_1908_", "slide4_1930_", "slide10_1902_", "slide11_1908_", "slide21_1930_", "56_AAASF_"]
     year = "9999" 	#year
     month = "13"	#month
     day = "32"	#day
@@ -77,5 +80,12 @@ def getNameData (imageName):     #cutNumber= 0
             month = imageName[cutNumber+4:cutNumber+6]
             day = imageName[cutNumber+6:cutNumber+8]
             year = imageName[cutNumber:cutNumber+4]
+            print imageName
+    weirdPrefixList = ["HABSNM1-ALBU10--", "KIC Document 1_", "KIC Document_", "StAnthony_HABS_document_", "StAnthonyCH_NRHPform_", "HABSCAL"]
+    for i in range(0, len(weirdPrefixList)): #cycling through my list of prefixes
+        if weirdPrefixList[i] in imageName: #Testing to see if that prefix is in the name of the document and if it is..
+            month = "01"
+            day = "27"
+            year = "2018"
             print imageName
     return [month, day, year]
