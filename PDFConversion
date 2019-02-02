@@ -2,15 +2,14 @@ convertAllPDFs = function(fileLocation){
   #Required libraries
   require(utils)
   require(pdftools)
-
+  
   #set a workspace
   setwd(fileLocation)
-
   #Deals with where to find the files and which files to include
   #Get a file path with what you want to convert
   filesToAnalyze = list.files(fileLocation)
   numberOfFiles = length(filesToAnalyze)
-
+  
   #make a list of all the things in that that are PDFS
   #This actually cycles through all the data to do the NDVI calculation and the mask
   for (i in 1:numberOfFiles) {
@@ -18,11 +17,11 @@ convertAllPDFs = function(fileLocation){
     #Tests if its the file type we want
     if (ext == "PDF" ||ext == "pdf") {
       fullFileName = paste(fileLocation, filesToAnalyze[i], sep = "/", collapse = "")
-      pdf_convert(fullFileName, format = "tiff", pages = NULL, filenames = NULL, dpi = 300, antialias = TRUE, verbose = TRUE)    
-            } else {
+      changeFileName = paste("SVO20190102", substr(filesToAnalyze[i], 0, nchar(filesToAnalyze[i])-4), ".tiff", sep = "", collapse = "")
+      pdf_convert(fullFileName, format = "tiff", pages = 1, filenames = changeFileName, dpi = 400, antialias = TRUE, verbose = TRUE)    
+    } else {
       print ("It wasn't my type")
     }
   }
-return ("I did the thing")
-
+  return ("I did the thing")
 }
