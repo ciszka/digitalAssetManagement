@@ -1,3 +1,4 @@
+#NOTE THIS IS R NOT PYTHON
 convertAllPDFs = function(fileLocation){
   #Required libraries
   require(utils)
