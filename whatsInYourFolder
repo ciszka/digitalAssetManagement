@@ -19,13 +19,39 @@
 #These are the libraries that you need to have installed for this to work
 import os
 import exifread
-from os import listdir
-from os.path import isfile, join
+
+pathdirectory = "C:\\Users\\pprzystupa\\Documents\\Summer_2019\\DissertationResearch\\PNW\\PortlandChildrensHome"
+tableGrowing = []
+photoTableGrowing = []
+numberOfFiles = 0
+extension = ".txt"
+givenFileName = "temp"
+newFileName = givenFileName + extension
+photosFileName = "photos" + givenFileName + extension
+
+#Writes out to a text file for the items that are in
+def writeFile (fileName, tableBuilding, pathdirectory):
+    #creates a new .txt for the table
+    current_file = open (pathdirectory+ "\\" + fileName, "w")
+    current_file.write("Location,OrigName,docType,year,month,day")
+    for i in range(0, len(tableBuilding)):
+       current_file.write(tableBuilding[i])
+
+#checks if a particular file is a jpeg or not
+def areYouAJpeg (fileName):
+    jpeg = False
+    if ".JPG" in fileName: #primarilybe photographs I have
+        jpeg = True
+    elif ".jpg" in fileName: #primarily be photographs I have
+        jpeg = True
+    else:
+        jpeg = False
+    return jpeg
 
 #Defined methods used in this program for appending information
 #Get EXIF metadata from photos taken
-def getExifData (imageName):
-    image = open(pathDirectory+"//" + imageName, 'rb') #opens the image file to be read #actually not 100% sure why this works but it does even though I didn't pass it the path directory...
+def getExifMetadata (imageName):
+    image = open(imageName, 'rb') #opens the image file to be read
     tags = exifread.process_file(image) #process the image to get the exif tags
     for tag in tags.keys(): #for all the tags that were processed
         if tag in ('Image DateTime'): #I only want the image date/timetag
@@ -33,124 +59,35 @@ def getExifData (imageName):
             year = date[0:4] #Get the year
             month = date [5:7] #get the month
             day = date[8:10] #get the day
-            return [month, day, year] #return a comprehensive date
+            metadata = year + "," + month + "," + day
+            return metadata #return a comprehensive date
 
-#Gets date collection data based on those things being in the name of the object
-def getNameData (imageName, institutionCode):
-    #separates out the different components for the metadata
-    cutNumber = 0 #sets the variable length for just figuring out what to cut out from the beginning of the name
-    if 'MYSCAN' in imageName: #for images scanned by the National Archives in College Park
-        cutNumber = cutThatOut("MYSCAN_")
-    elif 'IMG_' in imageName: #For images that were taken by my old phone
-        cutNumber = cutThatOut("IMG_")
-    elif 'archives@state.nm.us_' in imageName: #For images that were scanned at the NM State archives
-        cutNumber = cutThatOut("archives@state.nm.us_")
-    elif institutionCode in imageName: #these are for objects that have a different institution code but still have name based processing
-        cutNumber = cutThatOut(institutionCode)
-    year = imageName[cutNumber:cutNumber+4]
-    month = imageName[cutNumber+5:cutNumber+7]
-    day = imageName[cutNumber+8:cutNumber+10]
-    return [month, day, year]
+# gets just the filename (without the pathway) from the full filepath and name
+def getJustFileName(fileName):
+    #need to find the extension
+    indexOfExtension = fileName.find(".") #gives the index of the extension
+    #Gobackwards from the extension to the first /
+    indexOfLastSlash = fileName.rfind("\\")
+    justFileName = filename[indexOfLastSlash:indexOfExtension]
+    return justFileName
 
-#Just returns the length of the type of document to be cut
-def cutThatOut (type):
-    return len(type)
+#This is the walk through of the directories to take stock of the files that are
+#within a particular directory
+#currently it creates a list of them all and prints it onto a .txt file at the end
+#Needs to notice which are .jpegs and add that information (aka metadata)
+#to the growing list of stuff
+for root, dirs, files in os.walk(pathdirectory):
+    for file in files:
+        numberOfFiles = numberOfFiles + 1
+        fileName = os.path.join(root, file)
+        fileNameWithoutPath = getJustFileName(fileName)
+        if areYouAJpeg(fileName) :
+            metadata = getExifMetadata(fileName)
+            newPhotoLine = "\n" + fileName + "," + fileNameWithoutPath + "," + metadata
+            photoTableGrowing.append(newPhotoLine)
+        newLine = "\n" + fileName + "," + fileNameWithoutPath
+        tableGrowing.append(newLine)
+    print numberOfFiles
 
-#Writes out to a text file for the items that are in
-def writeFile (fileName, tableBuilding):
-    #creates a new .txt for the table
-    current_file = open (fileName, "w")
-    current_file.write("OrigName,InstitCode,year,month,day,docType")
-    for i in range(0, len(tableBuilding)):
-       current_file.write(tableBuilding[i])
-
-def areYouMyType (fileName):
-    if ".tif" in origName: #explores the document type which impacts where the date information comes from
-        docType ="TIFF"
-    elif ".JPG" in origName: #primarily be photographs I have
-        docType = "JPEG"
-    elif ".pdf" in origName:
-        docType = "PDF"
-    else:
-        docType = docType
-    return [docType]
-
-def whatToDoWithThisDoc (fileName, institutionCode):
-    if  "P" in origName:
-        metadata = getExifData(origName) #only works for photos unfortunately
-    elif "MYSCAN" in origName:
-        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-    elif "IMG" in origName:
-        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-    elif "archives@state.nm.us" in origName: #if it's one of these types and in that folder it should be the same intitutional code
-        metadata = getNameData(origName, institutionCode) #gets the standard name for a variety of name types
-    else:
-        institutionCode = origName[0:len(origName)-18] #the numerical things is 14 characters long and would start at the . for the extension only for items that are in the wrong place
-        metadata = getNameData(origName, institutionCode) #still follows the same pattern as the above stuff it's just a diffrent institutional code
-    return metadata, institutionCode
-
-def theDataForThisOneLine (fileName,institutionCode):
-    docType = areYouMyType(fileName)
-    if "TXT" not in docType: #aka it is one of the acceptable types
-      if institutionCode not in fileName:
-            lineInfo = whatToDoWithThisDoc(fileName, institutionCode)
-            metadata = lineInfo[0]
-            institutionCode = lineInfo[1]
-      elif institutionCode in origName:
-            metadata = getNameData(fileName, institutionCode)  #call the same method but will have a unique institution code
-    return [metadata, institutionCode, docType]
-
-# get current script dir
-#give it a place to be reading from (a particular folder)
-# if data and the script are not in the same location,
-# comment out the next line and replace 'path' with directory of your data
-
-pathDirectory = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
-path = "C:\\Users\\pprzystupa\\Documents\\Spring_2018\\DissertationResearch\\NewMexico\\Albuquerque"
-
-#create a document (.csv) for this information to be filled into
-fileName = "AIS.csv"
-
-#Institution Code This will be used for all items unless the code at the beginning of the item is completely different then it will reatain a unique code
-institutionCode = "AIS"
-
-#create a list of files from the location
-onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
-times = len(onlyInFiles) #Possibly count how many items are in the folder...
-
-#Creates the Array to hold the line for each tiem
-tableGrowing = []
-numberOfFiles = 0
-skippedFiles = 0
-
-#for loop that cycles through the items in the list
-for i in range(0, times):
-    numberOfFiles = numberOfFiles+1 #counts the number of files to make sure all of them got looked at
-    origName = onlyInFiles[i] 	#Colunms: Original Name
-    #these are temporary to indicate if the data was retreived or not
-    year = 9999 	#year
-    month = 13	#month
-    docType = "TXT" #Material type
-    day = 32	#day
-    metadata = [month,day,year]
-    docType = areYouMyType(origName)
-    if "TXT" not in docType: #aka it is one of the acceptable types
-      if institutionCode not in origName:
-            lineInfo = whatToDoWithThisDoc(origName, institutionCode)
-      elif institutionCode in origName:
-            metadata = getNameData(origName, institutionCode)  #call the same method but will have a unique institution code
-      metadata = lineInfo[0]
-      institutionCode = lineInfo[1]
-      month = metadata[0] #Set it to the month from metadata
-      day = metadata[1] #Set it to the day from metadata
-      year = metadata[2] #Set it to the year from metadata
-      newLine = '\n' + origName + ',' + institutionCode + ',' + year + "," + month + "," + day + "," + docType
-      tableGrowing.append(newLine)
-    else: #if it's not an acceptable file type we skip over it because it won't have the sort of information we want or it won't be the sort of data I want to keep track of
-        skippedFiles = skippedFiles + 1
-        print origName +", I skipped that file"
-        print "That makes %s skipped files" % skippedFiles
-
-writeFile(fileName, tableGrowing)
-print 'done'
-print numberOfFiles
+writeFile(newFileName, tableGrowing, pathdirectory)
+writeFile(photosFileName, photoTableGrowing, pathdirectory)
