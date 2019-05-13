@@ -11,8 +11,8 @@
 #          sequel for this as well which will go into another file
 # Author:      pprzystupa
 #
-# Created:     15/02/2018
-# Copyright:   (c) pprzystupa 2018
+# Created:     13 May 2019
+# Copyright:   (c) pprzystupa 2019
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
@@ -21,13 +21,13 @@ import os #this comes with your computer
 import exifread #This will need to be downloaded from the developer who created this format for reading metadata from photos
 
 #Names, Extensions and the places where you might want to look to find your or to take stock of your files
-pathdirectory = "C:\\Users\\"
+pathdirectory = "C:\\INSERTYOURDIRECTORYHERE"
 extension = ".txt" #Extension for the document that will hold the list of files
 givenFileName = "temp" #Place to put your file name for the list of files
 newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
 fileNameHeadings = "Location,OrigName,docType"
 photosFileName = "photos" + givenFileName + extension #This is an optional fileName specifically calling out and making a unique list of just the photos found in your directory
-photoFileNameheadings = "Location,OrigName,year,month,day,cameraModel"
+photoFileNameHeadings = "Location,OrigName,year,month,day,cameraModel"
 
 # beginning variables that will be filled with information from the pathways
 tableGrowing = [] #a table of all files
@@ -45,7 +45,7 @@ def writeFile (fileName, tableBuilding, pathdirectory, headings): #needs a name 
 
 #checks if a particular file is a jpeg or not
 #may remove this as I oculd just do a contains fucntion but that might be annoying as well?
-def areYouAJpeg (fileName): 
+def areYouAJpeg (fileName):
     jpeg = False #Assumes that the item is not a jPeg
     if ".JPG" in fileName: #Do you have the correct extension?
         jpeg = True
@@ -60,7 +60,8 @@ def areYouAJpeg (fileName):
 #Get EXIF metadata from photos taken
 def getExifMetadata (imageName):
     image = open(imageName, 'rb') #opens the image file to be read
-    tags = exifread.process_file(image) #process the image to get the exif tags
+    metadata = ""
+    tags = exifread.process_file(image) #process the image to get the exif tags4
     for tag in tags.keys(): #for all the tags that were processed
         if tag in ('Image DateTime'): #I only want the image date/timetag
             date = str(tags[tag]) #cast that list item into a string
@@ -68,10 +69,10 @@ def getExifMetadata (imageName):
             month = date [5:7] #get the month
             day = date[8:10] #get the day
             metadata = year + "," + month + "," + day
-        elif tag in ('Image UniqueCameraModel'):
+        if tag in ('Image Model'):
             cameraModel = str(tags[tag])
             metadata = metadata + "," + cameraModel
-        return metadata #return a comprehensive date
+            return metadata
 
 # gets just the filename (without the pathway) from the full filepath and name
 def getJustFileName(fileName):
@@ -79,11 +80,11 @@ def getJustFileName(fileName):
     indexOfExtension = fileName.find(".") #gives the index of the extension
     #Gobackwards from the extension to the first /
     indexOfLastSlash = fileName.rfind("\\")
-    justFileName = fileName[indexOfLastSlash+1:indexOfExtension] # need teh +1 so that it doesn't start with the \ 
+    justFileName = fileName[indexOfLastSlash+1:indexOfExtension] # need teh +1 so that it doesn't start with the \
     return justFileName
-    
+
 #need to find the extension
-def whatsYourExtension(fileName) 
+def whatsYourExtension(fileName):
     return fileName[fileName.find("."):len(fileName)]
 
 #This is the walk through of the directories to take stock of the files that are
@@ -100,11 +101,10 @@ for root, dirs, files in os.walk(pathdirectory):
             metadata = getExifMetadata(fileName)
             newPhotoLine = "\n" + fileName + "," + fileNameWithoutPath + "," + metadata
             photoTableGrowing.append(newPhotoLine)
-        else:
-            extension = whatsYourExtension(fileName)
-        newLine = "\n" + fileName + "," + fileNameWithoutPath  + extension[extension.find(".")+1:len(extension)]
+        extension = whatsYourExtension(fileName)
+        newLine = "\n" + fileName + "," + fileNameWithoutPath + "," + extension[extension.find(".")+1:len(extension)]
         tableGrowing.append(newLine)
     print numberOfFiles
 
-writeFile(newFileName, tableGrowing, pathdirectory, fileNameHeadings)
+#writeFile(newFileName, tableGrowing, pathdirectory, fileNameHeadings)
 writeFile(photosFileName, photoTableGrowing, pathdirectory, photoFileNameHeadings)
