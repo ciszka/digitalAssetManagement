@@ -68,7 +68,7 @@ def getJustFileName(fileName):
     indexOfExtension = fileName.find(".") #gives the index of the extension
     #Gobackwards from the extension to the first /
     indexOfLastSlash = fileName.rfind("\\")
-    justFileName = filename[indexOfLastSlash:indexOfExtension]
+    justFileName = filename[indexOfLastSlash+1:indexOfExtension]
     return justFileName
 
 #This is the walk through of the directories to take stock of the files that are
