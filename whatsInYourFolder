@@ -27,7 +27,7 @@ givenFileName = "temp" #Place to put your file name for the list of files
 newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
 fileNameHeadings = "Location,OrigName,docType"
 photosFileName = "photos" + givenFileName + extension #This is an optional fileName specifically calling out and making a unique list of just the photos found in your directory
-photoFileNameheadings = "Location,OrigName,year,month,day"
+photoFileNameheadings = "Location,OrigName,year,month,day,cameraModel"
 
 # beginning variables that will be filled with information from the pathways
 tableGrowing = [] #a table of all files
@@ -68,7 +68,10 @@ def getExifMetadata (imageName):
             month = date [5:7] #get the month
             day = date[8:10] #get the day
             metadata = year + "," + month + "," + day
-            return metadata #return a comprehensive date
+        elif tag in ('Image UniqueCameraModel'):
+            cameraModel = str(tags[tag])
+            metadata = metadata + "," + cameraModel
+        return metadata #return a comprehensive date
 
 # gets just the filename (without the pathway) from the full filepath and name
 def getJustFileName(fileName):
