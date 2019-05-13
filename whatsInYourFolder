@@ -17,38 +17,46 @@
 #-------------------------------------------------------------------------------
 
 #These are the libraries that you need to have installed for this to work
-import os
-import exifread
+import os #this comes with your computer
+import exifread #This will need to be downloaded from the developer who created this format for reading metadata from photos
 
-pathdirectory = "C:\\Users\\pprzystupa\\Documents\\Summer_2019\\DissertationResearch\\PNW\\PortlandChildrensHome"
-tableGrowing = []
-photoTableGrowing = []
-numberOfFiles = 0
-extension = ".txt"
-givenFileName = "temp"
-newFileName = givenFileName + extension
-photosFileName = "photos" + givenFileName + extension
+#Names, Extensions and the places where you might want to look to find your or to take stock of your files
+pathdirectory = "C:\\Users\\"
+extension = ".txt" #Extension for the document that will hold the list of files
+givenFileName = "temp" #Place to put your file name for the list of files
+newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
+fileNameHeadings = "Location,OrigName,docType"
+photosFileName = "photos" + givenFileName + extension #This is an optional fileName specifically calling out and making a unique list of just the photos found in your directory
+photoFileNameheadings = "Location,OrigName,year,month,day"
 
+# beginning variables that will be filled with information from the pathways
+tableGrowing = [] #a table of all files
+photoTableGrowing = [] #A table of just photos that have the dates as an additional field in the table
+numberOfFiles = 0 #counter to count the number of files
+
+#Defined methods used in this program for appending information
 #Writes out to a text file for the items that are in
-def writeFile (fileName, tableBuilding, pathdirectory):
+def writeFile (fileName, tableBuilding, pathdirectory, headings): #needs a name for the new file, an array with the information to build the table, and the location of where you want that file to go
     #creates a new .txt for the table
-    current_file = open (pathdirectory+ "\\" + fileName, "w")
-    current_file.write("Location,OrigName,docType,year,month,day")
-    for i in range(0, len(tableBuilding)):
+    current_file = open (pathdirectory+ "\\" + fileName, "w") #creates a new file at the specified location with the name and of the type you specicifed
+    current_file.write(headings) #gives the document a header with these, these are optional but important for my work
+    for i in range(0, len(tableBuilding)): #Actually reads through all the lines and writes the information to the text file
        current_file.write(tableBuilding[i])
 
 #checks if a particular file is a jpeg or not
-def areYouAJpeg (fileName):
-    jpeg = False
-    if ".JPG" in fileName: #primarilybe photographs I have
+#may remove this as I oculd just do a contains fucntion but that might be annoying as well?
+def areYouAJpeg (fileName): 
+    jpeg = False #Assumes that the item is not a jPeg
+    if ".JPG" in fileName: #Do you have the correct extension?
         jpeg = True
-    elif ".jpg" in fileName: #primarily be photographs I have
+    elif ".jpg" in fileName: #Or do you have a different extension
         jpeg = True
     else:
         jpeg = False
-    return jpeg
+    return jpeg #Tell me if it's a jpeg
 
-#Defined methods used in this program for appending information
+#Consider other metadata that could be gotten and if that is useful
+#Possibly the Maker of the camera (0x927c is the numerical tag in exifread
 #Get EXIF metadata from photos taken
 def getExifMetadata (imageName):
     image = open(imageName, 'rb') #opens the image file to be read
@@ -68,8 +76,12 @@ def getJustFileName(fileName):
     indexOfExtension = fileName.find(".") #gives the index of the extension
     #Gobackwards from the extension to the first /
     indexOfLastSlash = fileName.rfind("\\")
-    justFileName = filename[indexOfLastSlash+1:indexOfExtension]
+    justFileName = fileName[indexOfLastSlash+1:indexOfExtension] # need teh +1 so that it doesn't start with the \ 
     return justFileName
+    
+#need to find the extension
+def whatsYourExtension(fileName) 
+    return fileName[fileName.find("."):len(fileName)]
 
 #This is the walk through of the directories to take stock of the files that are
 #within a particular directory
@@ -85,9 +97,11 @@ for root, dirs, files in os.walk(pathdirectory):
             metadata = getExifMetadata(fileName)
             newPhotoLine = "\n" + fileName + "," + fileNameWithoutPath + "," + metadata
             photoTableGrowing.append(newPhotoLine)
-        newLine = "\n" + fileName + "," + fileNameWithoutPath
+        else:
+            extension = whatsYourExtension(fileName)
+        newLine = "\n" + fileName + "," + fileNameWithoutPath  + extension[extension.find(".")+1:len(extension)]
         tableGrowing.append(newLine)
     print numberOfFiles
 
-writeFile(newFileName, tableGrowing, pathdirectory)
-writeFile(photosFileName, photoTableGrowing, pathdirectory)
+writeFile(newFileName, tableGrowing, pathdirectory, fileNameHeadings)
+writeFile(photosFileName, photoTableGrowing, pathdirectory, photoFileNameHeadings)
