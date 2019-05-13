@@ -1,0 +1,84 @@
+#-------------------------------------------------------------------------------
+# Name:        Digital Asset Management program
+# Purpose: Fill a table based on what is in a folder I want this to fill a table
+#          so I can know what the underlying images are that make up an
+#          institutions model also want to write something that will append new
+#          information but and not delete or added new ones so that as I add new
+#          material (either to the same file or read from different files I can
+#          apply this. This portion is currently set up to write to a .csv* but
+#          this will eventually be imported into Access (most likely just for
+#          convience of interface use) therefore it would be good to write some
+#          sequel for this as well which will go into another file
+# Author:      pprzystupa
+#
+# Created:     15/02/2018
+# Copyright:   (c) pprzystupa 2018
+# Licence:     <your licence>
+#-------------------------------------------------------------------------------
+
+#These are the libraries that you need to have installed for this to work
+import os
+import exifread
+
+pathdirectory = "C:\\Users\\pprzystupa\\Documents\\Summer_2019\\DissertationResearch\\PNW\\PortlandChildrensHome"
+tableGrowing = []
+photoTableGrowing = []
+numberOfFiles = 0
+extension = ".txt"
+givenFileName = "temp"
+newFileName = givenFileName + extension
+photosFileName = "photos" + givenFileName + extension
+
+#Writes out to a text file for the items that are in
+def writeFile (fileName, tableBuilding, pathdirectory):
+    #creates a new .txt for the table
+    current_file = open (pathdirectory+ "\\" + fileName, "w")
+    current_file.write("Location,OrigName,docType,year,month,day")
+    for i in range(0, len(tableBuilding)):
+       current_file.write(tableBuilding[i])
+
+#checks if a particular file is a jpeg or not
+def areYouAJpeg (fileName):
+    jpeg = False
+    if ".JPG" in fileName: #primarilybe photographs I have
+        jpeg = True
+    elif ".jpg" in fileName: #primarily be photographs I have
+        jpeg = True
+    else:
+        jpeg = False
+    return jpeg
+
+#Defined methods used in this program for appending information
+#Get EXIF metadata from photos taken
+def getExifMetadata (imageName):
+    image = open(imageName, 'rb') #opens the image file to be read
+    tags = exifread.process_file(image) #process the image to get the exif tags
+    for tag in tags.keys(): #for all the tags that were processed
+        if tag in ('Image DateTime'): #I only want the image date/timetag
+            date = str(tags[tag]) #cast that list item into a string
+            year = date[0:4] #Get the year
+            month = date [5:7] #get the month
+            day = date[8:10] #get the day
+            metadata = year + "," + month + "," + day
+            return metadata #return a comprehensive date
+
+#This is the walk through of the directories to take stock of the files that are
+#within a particular directory
+#currently it creates a list of them all and prints it onto a .txt file at the end
+#Needs to notice which are .jpegs and add that information (aka metadata)
+#to the growing list of stuff
+for root, dirs, files in os.walk(pathdirectory):
+    for file in files:
+        numberOfFiles = numberOfFiles + 1
+        fileName = os.path.join(root, file)
+        fileNameWithoutPath = getJustFileName(fileName)
+        if areYouAJpeg(fileName) :
+            metadata = getExifMetadata(fileName)
+            newPhotoLine = "\n" + fileName + "," + fileNameWithoutPath + "," + metadata
+            photoTableGrowing.append(newPhotoLine)
+        newLine = "\n" + fileName + "," + fileNameWithoutPath
+        tableGrowing.append(newLine)
+    print numberOfFiles
+
+writeFile(newFileName, tableGrowing, pathdirectory)
+writeFile(photosFileName, photoTableGrowing, pathdirectory)
