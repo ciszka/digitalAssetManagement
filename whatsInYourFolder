@@ -21,9 +21,9 @@ import os #this comes with your computer
 import exifread #This will need to be downloaded from the developer who created this format for reading metadata from photos
 
 #Names, Extensions and the places where you might want to look to find your or to take stock of your files
-pathdirectory = "C:\\INSERTYOURDIRECTORYHERE"
+pathdirectory = "E:\\Anthro Backup"
 extension = ".txt" #Extension for the document that will hold the list of files
-givenFileName = "temp" #Place to put your file name for the list of files
+givenFileName =  "AnthroBackup" #Place to put your file name for the list of files
 newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
 fileNameHeadings = "Location,OrigName,docType"
 photosFileName = "photos" + givenFileName + extension #This is an optional fileName specifically calling out and making a unique list of just the photos found in your directory
@@ -59,20 +59,23 @@ def areYouAJpeg (fileName):
 #Possibly the Maker of the camera (0x927c is the numerical tag in exifread
 #Get EXIF metadata from photos taken
 def getExifMetadata (imageName):
-    image = open(imageName, 'rb') #opens the image file to be read
     metadata = ""
-    tags = exifread.process_file(image) #process the image to get the exif tags4
-    for tag in tags.keys(): #for all the tags that were processed
-        if tag in ('Image DateTime'): #I only want the image date/timetag
-            date = str(tags[tag]) #cast that list item into a string
-            year = date[0:4] #Get the year
-            month = date [5:7] #get the month
-            day = date[8:10] #get the day
-            metadata = year + "," + month + "," + day
-        if tag in ('Image Model'):
-            cameraModel = str(tags[tag])
-            metadata = metadata + "," + cameraModel
-            return metadata
+    try:
+        image = open(imageName, 'rb') #opens the image file to be read
+        tags = exifread.process_file(image) #process the image to get the exif tags4
+        for tag in tags.keys(): #for all the tags that were processed
+            if tag in ('Image DateTime'): #I only want the image date/timetag
+                date = str(tags[tag]) #cast that list item into a string
+                year = date[0:4] #Get the year
+                month = date [5:7] #get the month
+                day = date[8:10] #get the day
+                metadata = year + "," + month + "," + day
+            if tag in ('Image Model'):
+                cameraModel = str(tags[tag])
+                metadata = metadata + "," + cameraModel
+                return metadata
+    except:
+        return metadata
 
 # gets just the filename (without the pathway) from the full filepath and name
 def getJustFileName(fileName):
@@ -99,12 +102,12 @@ for root, dirs, files in os.walk(pathdirectory):
         fileNameWithoutPath = getJustFileName(fileName)
         if areYouAJpeg(fileName) :
             metadata = getExifMetadata(fileName)
-            newPhotoLine = "\n" + fileName + "," + fileNameWithoutPath + "," + metadata
+            newPhotoLine = "\n" + fileName + "," + fileNameWithoutPath + "," + str(metadata)
             photoTableGrowing.append(newPhotoLine)
-        extension = whatsYourExtension(fileName)
+            extension = whatsYourExtension(fileName)
         newLine = "\n" + fileName + "," + fileNameWithoutPath + "," + extension[extension.find(".")+1:len(extension)]
         tableGrowing.append(newLine)
     print numberOfFiles
 
-#writeFile(newFileName, tableGrowing, pathdirectory, fileNameHeadings)
+writeFile(newFileName, tableGrowing, pathdirectory, fileNameHeadings)
 writeFile(photosFileName, photoTableGrowing, pathdirectory, photoFileNameHeadings)
