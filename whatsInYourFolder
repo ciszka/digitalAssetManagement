@@ -21,9 +21,9 @@ import os #this comes with your computer
 import exifread #This will need to be downloaded from the developer who created this format for reading metadata from photos
 
 #Names, Extensions and the places where you might want to look to find your or to take stock of your files
-pathdirectory = "E:\\Anthro Backup"
+pathdirectory = "E:\\"
 extension = ".txt" #Extension for the document that will hold the list of files
-givenFileName =  "AnthroBackup" #Place to put your file name for the list of files
+givenFileName =  "" #Place to put your file name for the list of files
 newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
 fileNameHeadings = "Location,OrigName,docType"
 photosFileName = "photos" + givenFileName + extension #This is an optional fileName specifically calling out and making a unique list of just the photos found in your directory
