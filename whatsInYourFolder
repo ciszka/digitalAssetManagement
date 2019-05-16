@@ -21,9 +21,9 @@ import os #this comes with your computer
 import exifread #This will need to be downloaded from the developer who created this format for reading metadata from photos
 
 #Names, Extensions and the places where you might want to look to find your or to take stock of your files
-pathdirectory = "E:\\"
+pathdirectory = "H:\\"
 extension = ".txt" #Extension for the document that will hold the list of files
-givenFileName =  "" #Place to put your file name for the list of files
+givenFileName =  "NEW FILE NAME" #Place to put your file name for the list of files
 newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
 fileNameHeadings = "Location,OrigName,docType"
 photosFileName = "photos" + givenFileName + extension #This is an optional fileName specifically calling out and making a unique list of just the photos found in your directory
@@ -80,7 +80,7 @@ def getExifMetadata (imageName):
 # gets just the filename (without the pathway) from the full filepath and name
 def getJustFileName(fileName):
     #need to find the extension
-    indexOfExtension = fileName.find(".") #gives the index of the extension
+    indexOfExtension = fileName.rfind(".") #gives the index of the extension
     #Gobackwards from the extension to the first /
     indexOfLastSlash = fileName.rfind("\\")
     justFileName = fileName[indexOfLastSlash+1:indexOfExtension] # need teh +1 so that it doesn't start with the \
@@ -88,7 +88,7 @@ def getJustFileName(fileName):
 
 #need to find the extension
 def whatsYourExtension(fileName):
-    return fileName[fileName.find("."):len(fileName)]
+    return fileName[fileName.rfind("."):len(fileName)]
 
 #This is the walk through of the directories to take stock of the files that are
 #within a particular directory
