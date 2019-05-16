@@ -1,0 +1,63 @@
+#-------------------------------------------------------------------------------
+# Name:        Digital Asset Management program
+# Purpose: Fill a table based on what is in a file I want this to fill a table
+#          so I can use database generated stuff in a new and more organized way. 
+# Author:      pprzystupa
+#
+# Created:     13 May 2019
+# Copyright:   (c) pprzystupa 2019
+# Licence:     <your licence>
+#-------------------------------------------------------------------------------
+
+#These are the libraries that you need to have installed for this to work
+import os #this comes with your computer
+import exifread #This will need to be downloaded from the developer who created this format for reading metadata from photos
+
+#Names, Extensions and the places where you might want to look to find your or to take stock of your files
+pathdirectory = "H:\\" #aka where are the files
+extension = ".txt" #Extension for the document that will hold the list of files
+givenFileName =  "NewFileNameHere" #Place to put your file name for the list of files
+newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
+#Make this an array and then have this be the first line added to the table growing
+fileNameHeadings = "Report run on,LA No,Discovering Activity,Site Name(s),Other Site No(s),Owner/Manager,Site Type,Occupation Type,Source Graphics,UTM Coordinates:,Town if in limits,County,USGS Quad,PLSS,Dimensions,Elevation,Boundaries,Depositional-Erosional Environment,Stratigraphy,Estimated Depth,Depth Basis,Observations,Vegetation,Topography,Assemblage Size,Dating  Potential,Remarks,Component	Features,Feature Remarks,General Site Comments,Linked Activities,Site Visits,DOE Record,Site Record Inventory"
+#Report run on: 	LA No.  	Discovering Activity: 	Site Name(s):    	Other Site No(s).:	Owner/Manager:	Site Type:	Occupation Type:	Source Graphics:	UTM Coordinates:	Town, if in limits:	County:	USGS Quad:	PLSS:	Dimensions:	Elevation:	Boundaries:	Depositional / Erosional Environment:	Stratigraphy:	Estimated Depth:	Depth Basis:	Observations:	Vegetation:	Topography:	Assemblage Size:	Dating  Potential:	Remarks:	Component	Features:	Feature Remarks:	General Site Comments:	Linked Activities:	Site Visits:	DOE Record:	Site Record Inventory:
+
+# beginning variables that will be filled with information from the pathways
+tableGrowing = [] #a table of all files
+photoTableGrowing = [] #A table of just photos that have the dates as an additional field in the table
+numberOfFiles = 0 #counter to count the number of files
+
+tableGrowing[0] = fileNameHeadings
+def writeFile (fileName, tableBuilding, pathdirectory, headings): #needs a name for the new file, an array with the information to build the table, and the location of where you want that file to go
+    #creates a new .txt for the table
+    current_file = open (pathdirectory+ "\\" + fileName, "w") #creates a new file at the specified location with the name and of the type you specicifed
+    current_file.write(headings) #gives the document a header with these, these are optional but important for my work
+    for i in range(0, len(tableBuilding)): #Actually reads through all the lines and writes the information to the text file
+       current_file.write(tableBuilding[i])
+
+#open a text file or many
+# need to use a for loop
+#create a list of files from the location, aka how may forms am I going through
+onlyInFiles = [f for f in listdir(path) if isfile(join(path, f))]
+times = len(onlyInFiles) #Possibly count how many items are in the folder...
+
+#Read through it
+for i in range(0, times):
+    numberOfFiles = numberOfFiles+1 #counts the number of files to make sure all of them got looked at
+    origName = str(onlyInFiles[i])
+    newLine = ""
+    current_file = open (pathdirectory + '\\' + origName)
+    #Figure out how to read within the .txt file
+    for j in range(0, len(fileNameHeadings)):     #Get certain types of information that are standardized from PDFs or other sources by having an array of the headings and for each header in the list of headers:         #Cycle through the array Get everything after the thing in the array until the next thing in the arrray
+        startHeading = fileNameHeadings[j] #Get the header #Find the header in the text file
+        firstIndex = current_file.find(startHeading)+len(startHeading) #this will give me the index of the first character in that particular string
+        endHeading = current_file.find(fileNameHeadings[j+1]) #Look at the next header     	#Find that header's location in the text file
+        headingInformation = current_file[firstIndex,endHeading] #Get everything between Header 1 and Header 2
+        newLine = newLine + headinInformation + "," #Add that to a concatenating string that is the line
+    #Strip out any excess commas or quotation marks
+    #Add that line to a growing array of what will be the table file
+    strip(newLine)
+    tableGrowing.append(newLine)
+
+#Write the new table file
+writeFile(newFileName, tableGrowing, pathdirectory, fileNameHeadings)
