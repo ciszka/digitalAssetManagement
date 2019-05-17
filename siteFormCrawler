@@ -18,10 +18,15 @@ pathdirectory = "H:\\" #aka where are the files
 extension = ".txt" #Extension for the document that will hold the list of files
 givenFileName =  "NewFileNameHere" #Place to put your file name for the list of files
 newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
+
 #Make this an array and then have this be the first line added to the table growing
 fileNameHeadings = "Report run on,LA No,Discovering Activity,Site Name(s),Other Site No(s),Owner/Manager,Site Type,Occupation Type,Source Graphics,UTM Coordinates:,Town if in limits,County,USGS Quad,PLSS,Dimensions,Elevation,Boundaries,Depositional-Erosional Environment,Stratigraphy,Estimated Depth,Depth Basis,Observations,Vegetation,Topography,Assemblage Size,Dating  Potential,Remarks,Component	Features,Feature Remarks,General Site Comments,Linked Activities,Site Visits,DOE Record,Site Record Inventory"
+newHeadingsArray = fileNameHeadings.split(",")
+fileNameHeadingsCorrect = ""
+for x in range(0, len(newHeadinsArray)):
+    fileNameHeadingsCorrect = fileNameHeadingsCorrect + newheadinsArray[x] + "\t"
 #Report run on: 	LA No.  	Discovering Activity: 	Site Name(s):    	Other Site No(s).:	Owner/Manager:	Site Type:	Occupation Type:	Source Graphics:	UTM Coordinates:	Town, if in limits:	County:	USGS Quad:	PLSS:	Dimensions:	Elevation:	Boundaries:	Depositional / Erosional Environment:	Stratigraphy:	Estimated Depth:	Depth Basis:	Observations:	Vegetation:	Topography:	Assemblage Size:	Dating  Potential:	Remarks:	Component	Features:	Feature Remarks:	General Site Comments:	Linked Activities:	Site Visits:	DOE Record:	Site Record Inventory:
-
+    
 # beginning variables that will be filled with information from the pathways
 tableGrowing = [] #a table of all files
 photoTableGrowing = [] #A table of just photos that have the dates as an additional field in the table
@@ -47,13 +52,25 @@ for i in range(0, times):
     origName = str(onlyInFiles[i])
     newLine = ""
     current_file = open (pathdirectory + '\\' + origName)
+    wholeFile = current_file.read()
+    current_file.close()
     #Figure out how to read within the .txt file
-    for j in range(0, len(fileNameHeadings)):     #Get certain types of information that are standardized from PDFs or other sources by having an array of the headings and for each header in the list of headers:         #Cycle through the array Get everything after the thing in the array until the next thing in the arrray
-        startHeading = fileNameHeadings[j] #Get the header #Find the header in the text file
-        firstIndex = current_file.find(startHeading)+len(startHeading) #this will give me the index of the first character in that particular string
-        endHeading = current_file.find(fileNameHeadings[j+1]) #Look at the next header     	#Find that header's location in the text file
-        headingInformation = current_file[firstIndex,endHeading] #Get everything between Header 1 and Header 2
-        newLine = newLine + headinInformation + "," #Add that to a concatenating string that is the line
+    for j in range(0, len(newHeadingsArray)):     #Get certain types of information that are standardized from PDFs or other sources by having an array of the headings and for each header in the list of headers:         #Cycle through the array Get everything after the thing in the array until the next thing in the arrray
+        startHeading = newHeadingsArray[j] #Get the header #Find the header in the text file
+        headingInformation = ""
+        try:
+            firstIndex = wholeFile.find(startHeading)+len(startHeading) #this will give me the index of the first character in that particular string
+            endHeading = wholeFile.find(fileNameHeadings[j+1]) #Look at the next header     	#Find that header's location in the text file
+            headingInformation = wholeFile[firstIndex:endHeading] #Get everything between Header 1 and Header 2
+        except:
+            firstIndex = wholeFile.find(startHeading)+len(startHeading) #this will give me the index of the first character in that particular string
+            endHeading = len(wholeFile) #Look at the next header     	#Find that header's location in the text file
+            headingInformation = wholeFile[firstIndex:endHeading] #Get everything between Header 1 and Header 2
+        noTabsHeading = headingInformation.split()
+        headingInformation = ""
+        for x in range(0, len(noTabsHeading)):
+            headingInformation = headingInformation + noTabsHeading[x] + " "
+        newLine = newLine + headingInformation + "\t" #Add that to a concatenating string that is the line
     #Strip out any excess commas or quotation marks
     #Add that line to a growing array of what will be the table file
     strip(newLine)
