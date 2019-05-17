@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # Name:        Digital Asset Management program
-# Purpose: Fill a table based on what is in a file I want this to fill a table
-#          so I can use database generated stuff in a new and more organized way. 
+# Purpose: Fill a table based on what is in a folder I want this to fill a table
+#          so I can utilize this .txt file in a way that makes sense and is easy.
 # Author:      pprzystupa
 #
 # Created:     13 May 2019
@@ -11,7 +11,7 @@
 
 #These are the libraries that you need to have installed for this to work
 import os #this comes with your computer
-import exifread #This will need to be downloaded from the developer who created this format for reading metadata from photos
+import crawlerHelpers
 
 #Names, Extensions and the places where you might want to look to find your or to take stock of your files
 pathdirectory = "H:\\" #aka where are the files
@@ -20,25 +20,15 @@ givenFileName =  "NewFileNameHere" #Place to put your file name for the list of 
 newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
 
 #Make this an array and then have this be the first line added to the table growing
-fileNameHeadings = "Report run on,LA No,Discovering Activity,Site Name(s),Other Site No(s),Owner/Manager,Site Type,Occupation Type,Source Graphics,UTM Coordinates:,Town if in limits,County,USGS Quad,PLSS,Dimensions,Elevation,Boundaries,Depositional-Erosional Environment,Stratigraphy,Estimated Depth,Depth Basis,Observations,Vegetation,Topography,Assemblage Size,Dating  Potential,Remarks,Component	Features,Feature Remarks,General Site Comments,Linked Activities,Site Visits,DOE Record,Site Record Inventory"
-newHeadingsArray = fileNameHeadings.split(",")
-fileNameHeadingsCorrect = ""
-for x in range(0, len(newHeadinsArray)):
-    fileNameHeadingsCorrect = fileNameHeadingsCorrect + newheadinsArray[x] + "\t"
 #Report run on: 	LA No.  	Discovering Activity: 	Site Name(s):    	Other Site No(s).:	Owner/Manager:	Site Type:	Occupation Type:	Source Graphics:	UTM Coordinates:	Town, if in limits:	County:	USGS Quad:	PLSS:	Dimensions:	Elevation:	Boundaries:	Depositional / Erosional Environment:	Stratigraphy:	Estimated Depth:	Depth Basis:	Observations:	Vegetation:	Topography:	Assemblage Size:	Dating  Potential:	Remarks:	Component	Features:	Feature Remarks:	General Site Comments:	Linked Activities:	Site Visits:	DOE Record:	Site Record Inventory:
-    
+fileNameHeadings = "Report run on,LA No,Discovering Activity,Site Name(s),Other Site No(s),Owner/Manager,Site Type,Occupation Type,Source Graphics,UTM Coordinates:,Town,County,USGS Quad,PLSS,Dimensions,Elevation,Boundaries,Depositional,Stratigraphy,Estimated Depth,Depth Basis,Observations,Vegetation,Topography,Assemblage,Dating  Potential,Remarks,Component	Features,Feature Remarks,General Site Comments,Linked Activities,Site Visits,DOE Record,Site Record Inventory"
+headingsArray = makeHeadingsArray(fileNameHeadings)
+correctHeadings = makeStringFromlist(headingsArray, "\t")
+
 # beginning variables that will be filled with information from the pathways
 tableGrowing = [] #a table of all files
-photoTableGrowing = [] #A table of just photos that have the dates as an additional field in the table
 numberOfFiles = 0 #counter to count the number of files
-
-tableGrowing[0] = fileNameHeadings
-def writeFile (fileName, tableBuilding, pathdirectory, headings): #needs a name for the new file, an array with the information to build the table, and the location of where you want that file to go
-    #creates a new .txt for the table
-    current_file = open (pathdirectory+ "\\" + fileName, "w") #creates a new file at the specified location with the name and of the type you specicifed
-    current_file.write(headings) #gives the document a header with these, these are optional but important for my work
-    for i in range(0, len(tableBuilding)): #Actually reads through all the lines and writes the information to the text file
-       current_file.write(tableBuilding[i])
+tableGrowing.append(correctHeadings) #Add that line to a growing array of what will be the table file
 
 #open a text file or many
 # need to use a for loop
@@ -50,31 +40,21 @@ times = len(onlyInFiles) #Possibly count how many items are in the folder...
 for i in range(0, times):
     numberOfFiles = numberOfFiles+1 #counts the number of files to make sure all of them got looked at
     origName = str(onlyInFiles[i])
+    workingFile = readWorkingFile(pathdirectory, origName)
     newLine = ""
-    current_file = open (pathdirectory + '\\' + origName)
-    wholeFile = current_file.read()
-    current_file.close()
-    #Figure out how to read within the .txt file
     for j in range(0, len(newHeadingsArray)):     #Get certain types of information that are standardized from PDFs or other sources by having an array of the headings and for each header in the list of headers:         #Cycle through the array Get everything after the thing in the array until the next thing in the arrray
-        startHeading = newHeadingsArray[j] #Get the header #Find the header in the text file
+        startHeading = headingsArray[j] #Get the header #Find the header in the text file
         headingInformation = ""
-        try:
-            firstIndex = wholeFile.find(startHeading)+len(startHeading) #this will give me the index of the first character in that particular string
-            endHeading = wholeFile.find(fileNameHeadings[j+1]) #Look at the next header     	#Find that header's location in the text file
-            headingInformation = wholeFile[firstIndex:endHeading] #Get everything between Header 1 and Header 2
-        except:
-            firstIndex = wholeFile.find(startHeading)+len(startHeading) #this will give me the index of the first character in that particular string
+        firstIndex = wholeFile.find(startHeading)+len(startHeading)+1 #this will give me the index of the first character in that particular string
+        try: #if we are not at the end of the doucment do this
+            endHeading = wholeFile.find(newHeadingsArray[j+1]) #Look at the next header and find that header's location in the text file
+        except: #if we are at the end of the document do this
             endHeading = len(wholeFile) #Look at the next header     	#Find that header's location in the text file
-            headingInformation = wholeFile[firstIndex:endHeading] #Get everything between Header 1 and Header 2
+        headingInformation = wholeFile[firstIndex:endHeading] #Get everything between Header 1 and Header 2
         noTabsHeading = headingInformation.split()
-        headingInformation = ""
-        for x in range(0, len(noTabsHeading)):
-            headingInformation = headingInformation + noTabsHeading[x] + " "
-        newLine = newLine + headingInformation + "\t" #Add that to a concatenating string that is the line
-    #Strip out any excess commas or quotation marks
-    #Add that line to a growing array of what will be the table file
-    strip(newLine)
-    tableGrowing.append(newLine)
+        headingInformation = makeStringFromlist(noTabsHeading, " ")
+        newLine = newLine + headingInformation.strip() + "\t" #Add that to a concatenating string that is the line and strip out any excess commas or quotation marks    print newLine
+    tableGrowing.append(newLine) #Add that line to a growing array of what will be the table file
 
 #Write the new table file
 writeFile(newFileName, tableGrowing, pathdirectory, fileNameHeadings)
