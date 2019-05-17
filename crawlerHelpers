@@ -1,0 +1,33 @@
+#-------------------------------------------------------------------------------
+# Name:        siteFromCrawlerHelpers
+# Purpose:     helper methods for the site form cralwer
+#
+# Author:      pprzystupa
+#
+# Created:     17/05/2019
+# Copyright:   (c) pprzystupa 2019
+# Licence:     <your licence>
+#-------------------------------------------------------------------------------
+
+def makeHeadingsArray(headings):
+    newHeadingsArray = headings.split(",")
+    return newHeadingsArray
+
+def makeStringFromlist (lst, sep):
+    newString = ""
+    for x in range(0, len(lst)):
+        newString = newString + lst[x] + sep
+    return newString
+
+def writeFile (fileName, tableBuilding, pathdirectory, headings): #needs a name for the new file, an array with the information to build the table, and the location of where you want that file to go
+    #creates a new .txt for the table
+    current_file = open (pathdirectory+ "\\" + fileName, "w") #creates a new file at the specified location with the name and of the type you specicifed
+    current_file.write(headings) #gives the document a header with these, these are optional but important for my work
+    for i in range(0, len(tableBuilding)): #Actually reads through all the lines and writes the information to the text file
+       current_file.write(tableBuilding[i])
+
+def readWorkingFile (pathdirectory, origName):
+    current_file = open (pathdirectory + '\\' + origName, "r")
+    wholeFile = current_file.read() #everything read within the .txt file
+    current_file.close()
+    return wholeFile
