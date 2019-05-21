@@ -105,7 +105,7 @@ for root, dirs, files in os.walk(pathdirectory):
             newPhotoLine = "\n" + fileName + "," + fileNameWithoutPath + "," + str(metadata)
             photoTableGrowing.append(newPhotoLine)
         extension = whatsYourExtension(fileName)
-        newLine = "\n" + fileName + "," + fileNameWithoutPath + "," + extension[extension.find(".")+1:len(extension)]
+        newLine = "\n" + fileName + "," + fileNameWithoutPath + "," + extension[extension.rfind(".")+1:len(extension)]
         tableGrowing.append(newLine)
     print numberOfFiles
 
