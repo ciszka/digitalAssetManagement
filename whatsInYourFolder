@@ -1,14 +1,10 @@
 #-------------------------------------------------------------------------------
 # Name:        Digital Asset Management program
-# Purpose: Fill a table based on what is in a folder I want this to fill a table
-#          so I can know what the underlying images are that make up an
-#          institutions model also want to write something that will append new
-#          information but and not delete or added new ones so that as I add new
-#          material (either to the same file or read from different files I can
-#          apply this. This portion is currently set up to write to a .csv* but
-#          this will eventually be imported into Access (most likely just for
-#          convience of interface use) therefore it would be good to write some
-#          sequel for this as well which will go into another file
+# Purpose:      Fill a table based on what is in a folder. That identifies the location
+#               original name of the file, and it's type. It also makes a second list
+#               of just the jpegs to get the photos assessed and listed. It also pulls out
+#               some metadata from those images, including the date taken and the camera model
+#               for what took the model. 
 # Author:      pprzystupa
 #
 # Created:     13 May 2019
@@ -21,13 +17,13 @@ import os #this comes with your computer
 import exifread #This will need to be downloaded from the developer who created this format for reading metadata from photos
 
 #Names, Extensions and the places where you might want to look to find your or to take stock of your files
-pathdirectory = "H:\\"
+pathdirectory = "H:\\" #What is the thing you want to get hte list of 
 extension = ".txt" #Extension for the document that will hold the list of files
 givenFileName =  "NEW FILE NAME" #Place to put your file name for the list of files
 newFileName = givenFileName + extension #combines what you want to call the file with the extension of hte file type that you want associated with it
-fileNameHeadings = "Location,OrigName,docType"
+fileNameHeadings = "Location,OrigName,docType" #The table headings of what they want the info taken
 photosFileName = "photos" + givenFileName + extension #This is an optional fileName specifically calling out and making a unique list of just the photos found in your directory
-photoFileNameHeadings = "Location,OrigName,year,month,day,cameraModel"
+photoFileNameHeadings = "Location,OrigName,year,month,day,cameraModel" #Photo table headings identified for the spreadsheet
 
 # beginning variables that will be filled with information from the pathways
 tableGrowing = [] #a table of all files
@@ -35,7 +31,7 @@ photoTableGrowing = [] #A table of just photos that have the dates as an additio
 numberOfFiles = 0 #counter to count the number of files
 
 #Defined methods used in this program for appending information
-#Writes out to a text file for the items that are in
+#Writes out to a text file for the items that are in each location
 def writeFile (fileName, tableBuilding, pathdirectory, headings): #needs a name for the new file, an array with the information to build the table, and the location of where you want that file to go
     #creates a new .txt for the table
     current_file = open (pathdirectory+ "\\" + fileName, "w") #creates a new file at the specified location with the name and of the type you specicifed
