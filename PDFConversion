@@ -1,5 +1,5 @@
 #NOTE THIS IS R NOT PYTHON
-convertAllPDFs = function(fileLocation){
+convertAllPDFs = function(fileLocation, newFileName){
   #Required libraries
   require(utils)
   require(pdftools)
@@ -11,14 +11,22 @@ convertAllPDFs = function(fileLocation){
   filesToAnalyze = list.files(fileLocation)
   numberOfFiles = length(filesToAnalyze)
   
+  #looks at new file name
+  fileNamePrefix = ""
+  if(missing(newFileName)) {
+     fileNamePrefix = "NewTiff" 
+     } else {
+     fileNamePrefix = newFileName 
+     }
+  
   #This actually cycles through all the data to do the PDF conversion
   for (i in 1:numberOfFiles) {
-    ext = substr(filesToAnalyze[i], nchar(filesToAnalyze[i])-2, nchar(filesToAnalyze[i])) #This just gets the extension of the piece
-    #Tests if its the file type we want
+    ext = substr(filesToAnalyze[i], nchar(filesToAnalyze[i])-2, nchar(filesToAnalyze[i])) #This just gets the extension of the document
+    #Tests if its the file type we want which in this case is a PDF
     if (ext == "PDF" ||ext == "pdf") {  #if the file is a PDF it converts it 
       fullFileName = paste(fileLocation, filesToAnalyze[i], sep = "/", collapse = "")
-      changeFileName = paste("NEWFILENAMEHERE", substr(filesToAnalyze[i], 0, nchar(filesToAnalyze[i])-4), ".tiff", sep = "", collapse = "") # this is optional
-      pdf_convert(fullFileName, format = "tiff", pages = 1, filenames = changeFileName, dpi = 400, antialias = TRUE, verbose = TRUE)    
+      changeFileName = paste(fileNamePrefix, substr(filesToAnalyze[i], 0, nchar(filesToAnalyze[i])-4), ".tiff", sep = "", collapse = "")
+      pdf_convert(fullFileName, format = "tiff", pages = 1, filenames = changeFileName, dpi = 600, antialias = TRUE, verbose = TRUE)    
     } else {
       print ("It wasn't my type")
     }
